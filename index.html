@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <main class="pomodoro-app">
+        <div class="mode-selector" id="js-mode-buttons">
+            <button id="pomodoro-btn" data-mode="pomodoro" class="active">Focus</button>
+            <button id="short-break-btn" data-mode="shortBreak">Short Break</button>
+            <button id="long-break-btn" data-mode="longBreak">Long Break</button>
+        </div>
+        
+        <div class="timer-display">
+            <span id="js-minutes">25</span>
+            <span class="separator">:</span>
+            <span id="js-seconds">00</span>
+        </div>
+
+        <div class="task-info">
+            <input type="text" id="current-task-name" placeholder="What are you working on?">
+            <div id="js-session-counter" class="session-counter">
+                </div>
+        </div>
+
+        <div class="controls">
+            <button id="js-start-button" class="control-button primary">START</button>
+            <button id="js-pause-button" class="control-button hidden">PAUSE</button>
+            <button id="js-reset-button" class="control-button hidden">RESET</button>
+        </div>
+    </main>
+
+    <audio id="js-alarm-sound" src="alarm.mp3" preload="auto"></audio>
+
+<script src="script.js"></script>
+</body>
+</html>
