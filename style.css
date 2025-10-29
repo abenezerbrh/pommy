@@ -18,6 +18,15 @@ body {
   min-height: 100vh;
   transition: 0.3s;
 }
+img {
+  display: block;
+  margin: 0 auto 20px; /* centers it horizontally and adds space below */
+  width: 200px;
+  height: auto;
+  object-fit: contain;
+  border-radius: 50%;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
 
 /* LAYOUT */
 .pomodoro-app {
