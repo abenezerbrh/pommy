@@ -1,232 +1,225 @@
-// --- 1. STATE VARIABLES & CONSTANTS ---
 const timer = {
-    // Standard Pomodoro timings (in minutes)
-    pomodoro: 25,
-    shortBreak: 5,
-    longBreak: 15,
-    longBreakInterval: 4, // Long break after 4 pomodoros
-
-    // Runtime state
-    mode: 'pomodoro', 
-    isRunning: false,
-    timerInterval: null, // Holds the ID of setInterval for countdown
-    pomodoroCount: 0,
-    timeRemaining: 25 * 60, // Initial time set to 25 minutes in seconds
+  pomodoro: 25,
+  shortBreak: 5,
+  longBreak: 15,
+  longBreakInterval: 4,
+  mode: "pomodoro",
+  isRunning: false,
+  timeRemaining: 25 * 60,
+  timerInterval: null,
+  pomodoroCount: 0,
 };
 
-// --- 2. DOM ELEMENT REFERENCES ---
-const minutesDisplay = document.getElementById('js-minutes');
-const secondsDisplay = document.getElementById('js-seconds');
-const startButton = document.getElementById('js-start-button');
-const pauseButton = document.getElementById('js-pause-button');
-const resetButton = document.getElementById('js-reset-button');
-const modeButtons = document.getElementById('js-mode-buttons');
-const alarmSound = document.getElementById('js-alarm-sound');
-const appContainer = document.querySelector('.pomodoro-app'); // For dynamic color changes
-const sessionCounterElement = document.getElementById('js-session-counter');
+// Elements
+const minEl = document.getElementById("minutes");
+const secEl = document.getElementById("seconds");
+const modeEl = document.getElementById("mode-label");
+const circle = document.getElementById("timer-circle");
+const alarm = document.getElementById("alarm-sound");
 
+const startBtn = document.getElementById("start-btn");
+const pauseBtn = document.getElementById("pause-btn");
+const resetBtn = document.getElementById("reset-btn");
+const skipBtn = document.getElementById("skip-btn");
+const nextLabel = document.getElementById("next-label");
+const nextDuration = document.getElementById("next-duration");
+const nextIcon = document.getElementById("next-icon");
 
-// --- 3. UI/DISPLAY FUNCTIONS ---
+const settingsBtn = document.getElementById("settings-btn");
+const panel = document.getElementById("settings-panel");
+const themeSelect = document.getElementById("theme-select");
 
-// Converts total seconds into a formatted MM:SS object
-function formatTime(totalSeconds) {
-    const minutes = Math.floor(totalSeconds / 60);
-    const seconds = totalSeconds % 60;
+// Input elements
+const inputs = {
+  pomodoro: document.getElementById("focus-input"),
+  shortBreak: document.getElementById("short-input"),
+  longBreak: document.getElementById("long-input"),
+  longBreakInterval: document.getElementById("round-input"),
+};
 
-    // Use padStart to ensure single digits are prefixed with '0'
-    const formattedMinutes = String(minutes).padStart(2, '0');
-    const formattedSeconds = String(seconds).padStart(2, '0');
-
-    return { formattedMinutes, formattedSeconds };
+// ---------- Utility ----------
+function formatTime(sec) {
+  const m = String(Math.floor(sec / 60)).padStart(2, "0");
+  const s = String(sec % 60).padStart(2, "0");
+  return { m, s };
 }
 
-// Updates the time displayed on the screen and in the browser tab title (U6)
 function updateDisplay() {
-    const { formattedMinutes, formattedSeconds } = formatTime(timer.timeRemaining);
-
-    minutesDisplay.textContent = formattedMinutes;
-    secondsDisplay.textContent = formattedSeconds;
-
-    // Update the browser tab title
-    document.title = `(${formattedMinutes}:${formattedSeconds}) - ${timer.mode.toUpperCase()}`;
-    
-    updateSessionCounter();
+  const { m, s } = formatTime(timer.timeRemaining);
+  minEl.textContent = m;
+  secEl.textContent = s;
+  document.title = `${m}:${s} - ${timer.mode}`;
+  updateCircle();
 }
 
-// Updates the container background color and active button style (U2)
-function updateModeStyles() {
-    // 1. Update container background color
-    appContainer.className = 'pomodoro-app';
-    appContainer.classList.add(`${timer.mode}-mode`);
+function updateCircle() {
+  const total = timer[timer.mode] * 60;
+  const progress = 360 * (1 - timer.timeRemaining / total);
+  const color =
+    timer.mode === "pomodoro"
+      ? "var(--focus)"
+      : timer.mode === "shortBreak"
+      ? "var(--short)"
+      : "var(--long)";
+  
+  const isLight = document.body.classList.contains("light-theme");
 
-    // 2. Update active button highlighting
-    document.querySelectorAll('.mode-selector button').forEach(button => {
-        if (button.dataset.mode === timer.mode) {
-            button.classList.add('active');
-        } else {
-            button.classList.remove('active');
-        }
-    });
+  // --- FIX APPLIED HERE ---
+  // Ensure the central part of the gradient uses light colors in light mode.
+  const innerColor = isLight ? "#ffffff" : "#1e2230"; // Center color (lighter background)
+  const outerColor = isLight ? "#f0f0f0" : "#12151d"; // Outer background (matching body/card color)
+
+  circle.style.background = `
+    conic-gradient(${color} ${progress}deg, transparent ${progress}deg),
+    radial-gradient(circle at 50% 50%, ${innerColor} 0%, ${outerColor} 65%)
+  `;
+  // --------------------------
 }
 
-// Dynamically updates the visual dots for completed Pomodoros (U5)
-function updateSessionCounter() {
-    sessionCounterElement.innerHTML = ''; // Clear existing dots
+function updateNextPreview() {
+  const next =
+    timer.mode === "pomodoro"
+      ? (timer.pomodoroCount + 1) % timer.longBreakInterval === 0
+        ? "longBreak"
+        : "shortBreak"
+      : "pomodoro";
 
-    // Create dots representing the Pomodoro sessions in the current cycle
-    for (let i = 0; i < timer.longBreakInterval; i++) {
-        const dot = document.createElement('div');
-        dot.classList.add('pomodoro-dot');
-        
-        // Highlight dots for completed sessions (F6)
-        if (i < timer.pomodoroCount) {
-            dot.classList.add('completed');
-        }
-        sessionCounterElement.appendChild(dot);
-    }
+  const icons = { pomodoro: "💼", shortBreak: "☕", longBreak: "🌙" };
+  nextIcon.textContent = icons[next];
+  nextLabel.textContent =
+    "Next: " +
+    (next === "pomodoro"
+      ? "Focus Session"
+      : next === "shortBreak"
+      ? "Short Break"
+      : "Long Break");
+  nextDuration.textContent = `${timer[next]} min`;
 }
 
-
-// --- 4. CORE TIMER LOGIC ---
-
-// Handles the logic for switching the timer mode (F1, F3)
-function switchMode(newMode) {
-    // 1. Stop any running timer
-    if (timer.timerInterval) {
-        clearInterval(timer.timerInterval);
-        timer.isRunning = false;
-    }
-
-    // 2. Update state to the new mode
-    timer.mode = newMode;
-    
-    // Set time based on mode
-    if (newMode === 'pomodoro') {
-        timer.timeRemaining = timer.pomodoro * 60;
-    } else if (newMode === 'shortBreak') {
-        timer.timeRemaining = timer.shortBreak * 60;
-    } else if (newMode === 'longBreak') {
-        timer.timeRemaining = timer.longBreak * 60;
-    }
-
-    // 3. Update UI and styles
-    updateDisplay();
-    updateModeStyles();
-    
-    // 4. Reset button visibility (Show START)
-    startButton.classList.remove('hidden');
-    pauseButton.classList.add('hidden');
-    resetButton.classList.add('hidden');
-    startButton.textContent = 'START';
-}
-
-// The main countdown loop (called every second)
+// ---------- Timer Core ----------
 function tick() {
-    timer.timeRemaining--;
-
-    updateDisplay();
-
-    // Check if time is up
-    if (timer.timeRemaining <= 0) {
-        clearInterval(timer.timerInterval);
-        timer.isRunning = false;
-
-        // Play alarm sound (F8)
-        alarmSound.play();
-
-        // Determine the next mode (F5)
-        let nextMode = '';
-        if (timer.mode === 'pomodoro') {
-            timer.pomodoroCount++; // Increment counter
-            
-            // F4: Check for long break trigger
-            if (timer.pomodoroCount % timer.longBreakInterval === 0) {
-                nextMode = 'longBreak';
-            } else {
-                nextMode = 'shortBreak';
-            }
-        } else {
-            // If it was a break, go back to pomodoro
-            nextMode = 'pomodoro';
-            
-            // If it was a long break, reset the counter
-            if (timer.mode === 'longBreak') {
-                timer.pomodoroCount = 0;
-            }
-        }
-        
-        // Auto-start the next session (for continuous workflow)
-        switchMode(nextMode);
-        startTimer(); 
-    }
+  timer.timeRemaining--;
+  updateDisplay();
+  if (timer.timeRemaining <= 0) {
+    clearInterval(timer.timerInterval);
+    timer.isRunning = false;
+    alarm.play();
+    skipSession();
+  }
 }
 
-// Starts the timer (F2)
 function startTimer() {
-    if (timer.isRunning) return; 
-
-    timer.isRunning = true;
-    // Set the interval, ensuring it calls tick() every second (N1)
-    timer.timerInterval = setInterval(tick, 1000); 
-
-    // Update button visibility (show PAUSE, hide START)
-    startButton.classList.add('hidden');
-    pauseButton.classList.remove('hidden');
-    resetButton.classList.remove('hidden');
+  if (timer.isRunning) return;
+  timer.isRunning = true;
+  timer.timerInterval = setInterval(tick, 1000);
+  startBtn.classList.add("hidden");
+  pauseBtn.classList.remove("hidden");
+  resetBtn.classList.remove("hidden");
 }
 
-// Pauses the timer (F2)
 function pauseTimer() {
-    if (!timer.isRunning) return;
-    
-    clearInterval(timer.timerInterval);
-    timer.isRunning = false;
-
-    // Update button visibility (show START/RESUME, hide PAUSE)
-    startButton.textContent = 'RESUME';
-    startButton.classList.remove('hidden');
-    pauseButton.classList.add('hidden');
+  clearInterval(timer.timerInterval);
+  timer.isRunning = false;
+  startBtn.textContent = "Resume";
+  startBtn.classList.remove("hidden");
+  pauseBtn.classList.add("hidden");
 }
 
-// Resets the timer to the beginning of the current mode (F2)
 function resetTimer() {
-    // Get the duration for the currently selected mode
-    const currentDuration = timer[timer.mode];
-    
-    // Clear any running interval
-    clearInterval(timer.timerInterval);
-    timer.isRunning = false;
-
-    // Reset the time remaining
-    timer.timeRemaining = currentDuration * 60;
-
-    // Reset button visibility
-    startButton.textContent = 'START';
-    startButton.classList.remove('hidden');
-    pauseButton.classList.add('hidden');
-    resetButton.classList.add('hidden');
-    
-    updateDisplay();
+  clearInterval(timer.timerInterval);
+  timer.isRunning = false;
+  timer.timeRemaining = timer[timer.mode] * 60;
+  startBtn.textContent = "Start";
+  startBtn.classList.remove("hidden");
+  pauseBtn.classList.add("hidden");
+  resetBtn.classList.add("hidden");
+  updateDisplay();
 }
 
+function skipSession() {
+  let next;
+  if (timer.mode === "pomodoro") {
+    timer.pomodoroCount++;
+    next =
+      timer.pomodoroCount % timer.longBreakInterval === 0
+        ? "longBreak"
+        : "shortBreak";
+  } else {
+    next = "pomodoro";
+    if (timer.mode === "longBreak") timer.pomodoroCount = 0;
+  }
+  switchMode(next);
+}
 
-// --- 5. INITIALIZATION AND EVENT LISTENERS ---
+function switchMode(newMode) {
+  clearInterval(timer.timerInterval);
+  timer.isRunning = false;
+  timer.mode = newMode;
+  timer.timeRemaining = timer[newMode] * 60;
+  modeEl.textContent =
+    newMode === "pomodoro"
+      ? "Focus"
+      : newMode === "shortBreak"
+      ? "Short Break"
+      : "Long Break";
+  updateDisplay();
+  updateNextPreview();
+  startBtn.textContent = "Start";
+  startBtn.classList.remove("hidden");
+  pauseBtn.classList.add("hidden");
+  resetBtn.classList.add("hidden");
+}
 
-// Event listener for Start/Pause/Reset buttons
-startButton.addEventListener('click', startTimer);
-pauseButton.addEventListener('click', pauseTimer);
-resetButton.addEventListener('click', resetTimer);
+// ---------- Events ----------
+startBtn.onclick = startTimer;
+pauseBtn.onclick = pauseTimer;
+resetBtn.onclick = resetTimer;
+skipBtn.onclick = skipSession;
 
-// Event Delegation for Mode buttons (switches between Focus, Short, Long)
-modeButtons.addEventListener('click', (e) => {
-    // e.target.dataset.mode retrieves the data-mode attribute from the clicked button
-    const newMode = e.target.dataset.mode; 
-    if (newMode) {
-        switchMode(newMode);
+settingsBtn.onclick = () => panel.classList.toggle("active");
+themeSelect.onchange = (e) => {
+  document.body.classList.toggle("light-theme", e.target.value === "light");
+};
+
+// ---------- Inputs + Buttons ----------
+function updateValue(key, val) {
+    // 1. Determine max based on key (assuming max 60 for time, max 10 for rounds)
+    const minVal = parseInt(inputs[key].min);
+    const maxVal = key === 'longBreakInterval' ? 10 : 60; 
+
+    // 2. Clamp the value between min and max
+    timer[key] = Math.max(minVal, Math.min(maxVal, val));
+    
+    // 3. Force the input element to show the clamped (validated) value
+    inputs[key].value = timer[key];
+
+    // 4. Update timer display if the current mode was changed
+    if (!timer.isRunning && (key === timer.mode || (key === 'pomodoro' && timer.mode === 'pomodoro'))) {
+        timer.timeRemaining = timer[timer.mode] * 60;
+        updateDisplay();
     }
+    updateNextPreview();
+}
+
+Object.entries(inputs).forEach(([key, input]) => {
+  input.addEventListener("change", () => updateValue(key, +input.value));
 });
 
-// Run this function once the entire HTML structure is loaded
-document.addEventListener('DOMContentLoaded', () => {
-    switchMode(timer.mode); // Initialize the state and UI to Pomodoro mode
+const buttonConfigs = [
+  ["focus-dec", "focus-inc", "pomodoro"],
+  ["short-dec", "short-inc", "shortBreak"],
+  ["long-dec", "long-inc", "longBreak"],
+  ["round-dec", "round-inc", "longBreakInterval"],
+];
+buttonConfigs.forEach(([decId, incId, key]) => {
+  document.getElementById(decId).onclick = () =>
+    updateValue(key, timer[key] - 1);
+  document.getElementById(incId).onclick = () =>
+    updateValue(key, timer[key] + 1);
+});
+
+// ---------- Init ----------
+document.addEventListener("DOMContentLoaded", () => {
+  updateDisplay();
+  updateNextPreview();
 });

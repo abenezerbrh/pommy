@@ -1,40 +1,102 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pomodoro Timer</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 </head>
 <body>
-    <main class="pomodoro-app">
-        <div class="mode-selector" id="js-mode-buttons">
-            <button id="pomodoro-btn" data-mode="pomodoro" class="active">Focus</button>
-            <button id="short-break-btn" data-mode="shortBreak">Short Break</button>
-            <button id="long-break-btn" data-mode="longBreak">Long Break</button>
-        </div>
-        
-        <div class="timer-display">
-            <span id="js-minutes">25</span>
-            <span class="separator">:</span>
-            <span id="js-seconds">00</span>
-        </div>
+  <button id="settings-btn" class="settings-btn"><i class="fa-solid fa-gear"></i></button>
 
-        <div class="task-info">
-            <input type="text" id="current-task-name" placeholder="What are you working on?">
-            <div id="js-session-counter" class="session-counter">
-                </div>
+  <main class="pomodoro-app">
+    <section class="timer-section">
+      <div id="timer-circle" class="timer-circle">
+        <div class="timer-text">
+          <span id="minutes">25</span> : <span id="seconds">00</span>
         </div>
+        <div id="mode-label" class="mode-label">Focus</div>
+      </div>
 
-        <div class="controls">
-            <button id="js-start-button" class="control-button primary">START</button>
-            <button id="js-pause-button" class="control-button hidden">PAUSE</button>
-            <button id="js-reset-button" class="control-button hidden">RESET</button>
+      <div class="controls">
+        <button id="start-btn" class="btn main">Start</button>
+        <button id="pause-btn" class="btn hidden">Pause</button>
+        <button id="reset-btn" class="btn hidden">Reset</button>
+        <button id="skip-btn" class="btn">Skip ⏭</button>
+      </div>
+
+      <div class="next">
+        <span id="next-icon">💼</span>
+        <div class="next-info">
+          <p id="next-label">Next: Short Break</p>
+          <p id="next-duration" class="next-time">5 min</p>
         </div>
-    </main>
+      </div>
+    </section>
 
-    <audio id="js-alarm-sound" src="alarm.mp3" preload="auto"></audio>
+    <!-- SETTINGS PANEL -->
+    <aside id="settings-panel" class="settings-panel">
+      <h2>Timer</h2>
+      <hr />
 
-<script src="script.js"></script>
+      <div class="setting-row">
+        <label>Focus:</label>
+        <div class="adjust">
+          <button class="adj-btn" id="focus-dec">−</button>
+          <input type="number" id="focus-input" value="25" min="1" max="60" />
+          <button class="adj-btn" id="focus-inc">+</button>
+          <span class="unit">minutes</span>
+        </div>
+      </div>
+
+      <div class="setting-row">
+        <label>Short Break:</label>
+        <div class="adjust">
+          <button class="adj-btn" id="short-dec">−</button>
+          <input type="number" id="short-input" value="5" min="1" max="60" />
+          <button class="adj-btn" id="short-inc">+</button>
+          <span class="unit">minutes</span>
+        </div>
+      </div>
+
+      <div class="setting-row">
+        <label>Long Break:</label>
+        <div class="adjust">
+          <button class="adj-btn" id="long-dec">−</button>
+          <input type="number" id="long-input" value="15" min="1" max="60" />
+          <button class="adj-btn" id="long-inc">+</button>
+          <span class="unit">minutes</span>
+        </div>
+      </div>
+
+      <div class="setting-row">
+        <label>Rounds:</label>
+        <p class="subtext">Focus sessions before long break</p>
+        <div class="adjust">
+          <button class="adj-btn" id="round-dec">−</button>
+          <input type="number" id="round-input" value="4" min="1" max="10" />
+          <button class="adj-btn" id="round-inc">+</button>
+          <span class="unit">rounds</span>
+        </div>
+      </div>
+
+      <h2>Appearance</h2>
+      <hr />
+      <div class="setting-row">
+        <label>Theme:</label>
+        <select id="theme-select">
+          <option value="dark" selected>Dark</option>
+          <option value="light">Light</option>
+        </select>
+      </div>
+    </aside>
+  </main>
+
+  <audio id="alarm-sound" src="alarm.mp3" preload="auto"></audio>
+  <script src="script.js"></script>
 </body>
 </html>

@@ -1,187 +1,245 @@
-/* -------------------------------------------------------------------
- * 1. Global Reset and Variables
- * ------------------------------------------------------------------- */
 :root {
-    /* Define color variables for easy theming */
-    --color-focus: #F75D59; /* Tomato Red */
-    --color-short-break: #4CAF50; /* Green */
-    --color-long-break: #2196F3; /* Blue */
-    --color-background: #1A1A2E; /* Dark background */
-    --color-text: #FFFFFF;
-    --color-subtle: #999;
-    --font-stack: 'Arial', sans-serif;
-}
-
-* {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
+  --focus: #ff5959;
+  --short: #46c06a;
+  --long: #2a8ff7;
+  --bg: #1a1a2e;
+  --card: #2c394b;
+  --text: #fff;
+  --muted: #aaa;
 }
 
 body {
-    background-color: var(--color-background);
-    color: var(--color-text);
-    font-family: var(--font-stack);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 100vh;
-    padding: 20px;
+  background: var(--bg);
+  color: var(--text);
+  font-family: "Space Mono", monospace;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  transition: 0.3s;
 }
 
-/* -------------------------------------------------------------------
- * 2. Main Layout and Container
- * ------------------------------------------------------------------- */
+/* LAYOUT */
 .pomodoro-app {
-    background-color: #2C394B; /* Slightly lighter dark container */
-    padding: 40px 25px;
-    border-radius: 20px;
-    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.4);
-    text-align: center;
-    max-width: 450px;
-    width: 100%;
+  display: flex;
+  align-items: flex-start;
+  gap: 40px;
 }
 
-/* -------------------------------------------------------------------
- * 3. Mode Selection Buttons
- * ------------------------------------------------------------------- */
-.mode-selector {
-    display: flex;
-    justify-content: space-around;
-    padding: 10px;
-    margin-bottom: 30px;
-    background-color: #1A1A2E;
-    border-radius: 10px;
+/* TIMER */
+.timer-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
-.mode-selector button {
-    background: transparent;
-    border: none;
-    color: var(--color-subtle);
-    font-size: 1rem;
-    padding: 10px 15px;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: color 0.3s, background-color 0.3s;
-    font-weight: 600;
+.timer-circle {
+  width: 250px;
+  height: 250px;
+  border-radius: 50%;
+  background: conic-gradient(var(--focus) 0deg, transparent 0deg),
+              radial-gradient(circle at 50% 50%, #2b2b38 0%, #151822 65%);
+  box-shadow: inset 0 0 0 8px rgba(255,255,255,0.08);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 20px;
+}
+.timer-text {
+  font-size: 2.5rem;
+  font-weight: bold;
+}
+.mode-label {
+  font-size: 1rem;
+  margin-top: 5px;
+  color: var(--muted);
 }
 
-.mode-selector button:hover {
-    color: var(--color-text);
-}
-
-/* Active Mode Styling - The color will be set by JS on the body/container */
-.mode-selector button.active {
-    background-color: #4C597C; /* A neutral active background */
-    color: var(--color-text);
-    /* The color of the active button will be dynamically highlighted in JS */
-}
-
-/* -------------------------------------------------------------------
- * 4. Timer Display
- * ------------------------------------------------------------------- */
-.timer-display {
-    font-size: 6rem;
-    font-weight: bold;
-    letter-spacing: 5px;
-    margin-bottom: 30px;
-}
-
-.separator {
-    opacity: 0.8;
-}
-
-/* -------------------------------------------------------------------
- * 5. Controls (Start/Pause/Reset)
- * ------------------------------------------------------------------- */
+/* CONTROLS */
 .controls {
-    margin-top: 30px;
+  display: flex;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+.btn {
+  border: none;
+  padding: 10px 18px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.2s;
+}
+.btn.main {
+  background: var(--focus);
+  color: white;
+}
+#skip-btn {
+  background: rgba(255,255,255,0.15); /* Dark mode background */
+  color: #fff;
+}
+#skip-btn:hover { background: rgba(255,255,255,0.25); }
+.hidden { display: none; }
+
+/* NEXT SECTION */
+.next {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255,255,255,0.08);
+  padding: 10px 15px;
+  border-radius: 10px;
+  font-size: 0.9rem;
 }
 
-.control-button {
-    background-color: var(--color-text);
-    color: var(--color-background);
-    border: none;
-    padding: 12px 30px;
-    margin: 0 5px;
-    border-radius: 50px;
-    font-size: 1.2rem;
-    font-weight: bold;
-    cursor: pointer;
-    transition: transform 0.1s, box-shadow 0.3s;
-    box-shadow: 0 4px 0 rgba(0, 0, 0, 0.2);
+/* SETTINGS PANEL */
+.settings-panel {
+  display: none;
+  flex-direction: column;
+  background: var(--card);
+  padding: 25px;
+  border-radius: 16px;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.35);
+  width: 280px;
+  color: var(--text);
+}
+.settings-panel.active { display: flex; }
+
+.settings-panel h2 {
+  font-size: 1.2rem;
+  margin-bottom: 5px;
+}
+.settings-panel hr {
+  border: none;
+  border-top: 1px solid rgba(255,255,255,0.1);
+  margin: 8px 0 16px;
 }
 
-.control-button:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 0 rgba(0, 0, 0, 0.25);
+.setting-row { margin-bottom: 20px; }
+.setting-row label {
+  font-weight: 600;
+  display: block;
+  margin-bottom: 6px;
+}
+.subtext {
+  font-size: 0.8rem;
+  color: var(--muted);
+  margin: -4px 0 6px;
 }
 
-.control-button:active {
-    transform: translateY(2px);
-    box-shadow: none;
+.adjust {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.adj-btn {
+  width: 30px;
+  height: 30px;
+  border: none;
+  border-radius: 6px;
+  background: rgba(255,255,255,0.1);
+  color: var(--text);
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.adj-btn:hover { background: rgba(255,255,255,0.25); }
+input[type="number"] {
+  width: 60px;
+  text-align: center;
+  border: none;
+  border-radius: 6px;
+  padding: 5px;
+  font-size: 1rem;
+  font-weight: 600;
+  background: rgba(255,255,255,0.1);
+  color: var(--text);
+}
+.unit {
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+select {
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.2);
+    color: var(--text);
+    border-radius: 6px;
+    padding: 5px 10px;
+    font-weight: 500;
 }
 
-.control-button.hidden {
-    display: none;
+/* FIX: Style the options within the dropdown */
+select option {
+    /* Set the background to a dark color (like your card background) */
+    background: var(--card, #2c394b); 
+    /* Set the text color to white */
+    color: var(--text, #fff); 
 }
 
-/* -------------------------------------------------------------------
- * 6. Task & Progress Area
- * ------------------------------------------------------------------- */
-.task-info {
-    margin-bottom: 20px;
-    padding: 10px 0;
+/* SETTINGS ICON */
+.settings-btn {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: none; /* no background */
+  border: none; /* remove border */
+  color: var(--text);
+  font-size: 2rem;
+  cursor: pointer;
+  transition: transform 0.25s ease, color 0.25s ease;
+}
+.settings-btn:hover {
+  transform: rotate(90deg);
+  color: var(--focus);
 }
 
-#current-task-name {
-    width: 90%;
-    padding: 10px;
-    border: 2px solid #4C597C;
-    border-radius: 8px;
-    background-color: #1A1A2E;
-    color: var(--color-text);
-    font-size: 1rem;
-    text-align: center;
-    margin-bottom: 15px;
+
+/* LIGHT THEME */
+.light-theme {
+  --bg: #f8f9fb;
+  --card: #ffffff;
+  --text: #111;
+  --muted: #444;
+}
+.light-theme .timer-circle {
+  background: conic-gradient(var(--focus) 0deg, transparent 0deg),
+              radial-gradient(circle at 50% 50%, #ffffff 0%, #f2f2f2 65%);
+  box-shadow: inset 0 0 0 8px rgba(0,0,0,0.1);
 }
 
-#current-task-name::placeholder {
-    color: var(--color-subtle);
+/* FIX 1: Make Skip button visible in light mode */
+.light-theme #skip-btn {
+  background: #ccc; /* Use a medium gray for visibility */
+  color: #111;
+}
+.light-theme #skip-btn:hover { 
+  background: #bbb; 
 }
 
-.session-counter {
-    display: flex;
-    justify-content: center;
-    gap: 8px;
-    min-height: 20px; /* Ensure space even if no dots are present */
+/* FIX 2: Ensure Inputs/Buttons have a clear background/border in light mode */
+.light-theme .btn, 
+.light-theme input[type="number"], 
+.light-theme select {
+  /* Use solid white background and a subtle border to clearly define the input area */
+  background: #fff; 
+  border: 1px solid rgba(0,0,0,0.2);
+  color: #111;
+}
+.light-theme .adj-btn { 
+  background: #f0f0f0; /* Use a light gray for the adjustment buttons */
+  color: #111; 
+  border: 1px solid rgba(0,0,0,0.1);
 }
 
-/* Styling for the visual progress indicators (JS will add these elements) */
-.session-counter .pomodoro-dot {
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    background-color: #4C597C; /* Inactive dot color */
-    transition: background-color 0.3s;
+.light-theme .settings-panel {
+  background: #ffffff;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.1);
 }
-
-.session-counter .pomodoro-dot.completed {
-    background-color: var(--color-focus); /* Active dot color */
+.light-theme .settings-btn {
+  background: #fff;
+  border: 2px solid rgba(0,0,0,0.15);
+  color: #111;
 }
-
-/* -------------------------------------------------------------------
- * 7. Dynamic Mode Colors (Managed by JavaScript)
- * ------------------------------------------------------------------- */
-/* The JS will apply a class to the body (or main container) to change the theme color */
-.focus-mode {
-    background-color: var(--color-focus);
-}
-
-.shortBreak-mode {
-    background-color: var(--color-short-break);
-}
-
-.longBreak-mode {
-    background-color: var(--color-long-break);
+.light-theme .settings-panel hr {
+  border-top: 1px solid rgba(0,0,0,0.1);
 }
